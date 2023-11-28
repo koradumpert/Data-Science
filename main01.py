@@ -1,16 +1,7 @@
-import pandas as pd
-import numpy as np
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
-
-
+from my_decision_tree_classifier import MyDecisionTreeClassifier
 
 
 class Experiment01:
-
-
-
 
     @staticmethod
     def run():
@@ -20,21 +11,20 @@ class Experiment01:
         accuracy of the model, and prints the results.
         :return: None
         """
-        X_train, X_test, y_train, y_test = Experiment01.load_data()
+        train_X, train_y, test_X, test_y = Experiment01.load_data()
+        my_tree = MyDecisionTreeClassifier()
 
-        # Train classifer
-        classify = SVC(kernel='linear')
-        classify.fit(X_train, y_train)
+        my_tree.fit(X=train_X, y=train_y)
+        predictions = my_tree.predict(X=test_X)
 
-
-        score = classify.score(X_test, y_test)
-        print(f"The accuracy of this SVM in labeling news as Fake or Real was: {score}")
-
-
+        print("My decision tree predicted:")
+        print(predictions)
+        print()
+        print("The true values were actually:")
+        print(test_y)
 
     @staticmethod
-    def load_data(file_path_prefix="/Users/koradumpert/Desktop/DSCI372/project_4_ML/"):
-
+    def load_data(filename="path/to/iris_data.csv"):
         """
         Load the data and partition it into testing and training data.
         :param filename: The location of the data to load from file.
@@ -42,30 +32,45 @@ class Experiment01:
         (like a list or a numpy array).
         """
 
+        # Modify anything in this method, but keep the return line the same.
+        # You may also import any needed library (like numpy)
 
+        train_X = []
+        train_y = []
+        test_X = []
+        test_y = []
 
-        df = pd.read_csv(file_path_prefix + "cleaned_FNews_data.csv", header=0)
-        df = df.sample(n=15000, random_state=42) #make it smaller so runs quicker (OG set was 70,000 +)
+        return train_X, train_y, test_X, test_y
 
-        from sklearn.model_selection import train_test_split
-        text = df['text']
-        labels = df['label']
+    @staticmethod
+    def _get_accuracy(pred_y, true_y):
+        """
+        Calculates the overall percentage accuracy.
+        :param pred_y: Predicted values.
+        :param true_y: Ground truth values.
+        :return: The accuracy, formatted as a number in [0, 1].
+        """
+        if len(pred_y) != len(true_y):
+            raise Exception("Different number of prediction-values than truth-values.")
 
-        vect = CountVectorizer() #encodes text to vectors to allow for features
-        X = vect.fit_transform(text)
+        number_of_agreements = 0
+        number_of_pairs = len(true_y)  # Or, equivalently, len(pred_y)
 
-        # Splits data into training and test sets
-        X_train, X_test, y_train, y_test = train_test_split(X, labels, test_size=0.2, random_state=42)
+        for individual_prediction_value, individual_truth_value in zip(pred_y, true_y):
+            if individual_prediction_value == individual_truth_value:
+                number_of_agreements += 1
 
+        accuracy = number_of_agreements / number_of_pairs
 
-
-
-        return X_train, X_test, y_train, y_test
-
-
+        return accuracy
 
 
 if __name__ == "__main__":
-    # Run experiment
-
-    Experiment01.run()
+    # Run the experiment 10 times.
+    # Common bugs:
+    # (1) If the output is identical each time, it means there's an
+    # error with your randomized sample selection for training vs testing.
+    # (2) If the accuracy is low then there is either a flaw in your model or
+    # the y values are not correctly associated with their corresponding x samples.
+    for _ in range(10):
+        Experiment01.run()
